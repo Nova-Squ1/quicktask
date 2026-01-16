@@ -10,7 +10,6 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(CURRENT_DIR, "simple_task_data.json")
 EXPIRATION_SECONDS = 30 * 60  # 30分钟
 
-
 @register("quick_task", "Squ1", "简易任务板：发布(覆盖)/列表/搜索", "1.1.1", "repo url")
 class QuickTaskPlugin(Star):
     def __init__(self, context: Context):
@@ -81,8 +80,7 @@ class QuickTaskPlugin(Star):
         yield event.plain_result(msg)
 
     # 2. 发布指令
-    # 修复：使用 alias 参数定义所有别名
-    @filter.command("发布任务", alias=["发布", "pub", "task" ])
+    @filter.command("发布任务", alias=["发布", "pub", "task"])
     async def publish_task(self, event: AstrMessageEvent):
         '''发布新任务 (自动覆盖)'''
         user_name = event.get_sender_name()
@@ -124,7 +122,7 @@ class QuickTaskPlugin(Star):
         yield event.plain_result(msg)
 
     # 3. 删除指令
-    @filter.command("删除任务", alias=["撤销任务", "del", "rm","删除"])
+    @filter.command("删除任务", alias=["撤销任务", "del", "rm", "删除"])
     async def delete_task(self, event: AstrMessageEvent):
         '''删除自己的任务'''
         user_id = event.get_sender_id()
@@ -144,7 +142,7 @@ class QuickTaskPlugin(Star):
             yield event.plain_result("❌ 你当前没有发布的任务")
 
     # 4. 列表指令
-    @filter.command("任务列表", alias=["列表", "ls", "tasks","活"])
+    @filter.command("任务列表", alias=["列表", "ls", "tasks", "活"])
     async def list_tasks(self, event: AstrMessageEvent):
         '''查看所有任务'''
         self.clean_expired()
@@ -157,10 +155,10 @@ class QuickTaskPlugin(Star):
         yield event.plain_result(header + body)
 
     # 5. 搜索指令
-    @filter.command("搜索任务", alias=["搜索", "find", "query","活"])
+    @filter.command("搜索任务", alias=["搜索", "find", "query"])
     async def search_task(self, event: AstrMessageEvent):
         '''搜索任务'''
-        aliases = ["搜索任务", "搜索", "find", "query","活"]
+        aliases = ["搜索任务", "搜索", "find", "query"]
         keyword = self._strip_prefix(event.message_str, aliases)
 
         self.clean_expired()
