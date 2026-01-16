@@ -10,7 +10,8 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(CURRENT_DIR, "simple_task_data.json")
 EXPIRATION_SECONDS = 30 * 60  # 30分钟
 
-@register("quick_task", "Squ1", "简易任务板：发布(覆盖)/列表/搜索", "1.1.1", "repo url")
+
+@register("quick_task", "Squ1", "简易任务板：发布(覆盖)/列表/搜索", "1.1.3", "repo url")
 class QuickTaskPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -53,20 +54,23 @@ class QuickTaskPlugin(Star):
             msg.append(f"👤 {t['publisher']} | 🕒 发布于 {elapsed_str}")
         return "\n".join(msg)
 
-    def _strip_prefix(self, message: str, aliases: list) -> str:
+    def _strip_prefix(self, message: str, main_cmd: str, aliases: set) -> str:
         """智能移除指令前缀"""
         message = message.strip()
+        # 将主指令和别名合并到一个列表中
+        all_cmds = [main_cmd] + list(aliases)
         # 按长度倒序排列，防止"发布任务"被误识别为"发布"
-        sorted_aliases = sorted(aliases, key=len, reverse=True)
-        for alias in sorted_aliases:
-            if message.lower().startswith(alias.lower()):
-                return message[len(alias):].strip()
+        sorted_cmds = sorted(all_cmds, key=len, reverse=True)
+
+        for cmd in sorted_cmds:
+            if message.lower().startswith(cmd.lower()):
+                return message[len(cmd):].strip()
         return message
 
     # === 指令处理函数 ===
 
     # 1. 帮助指令
-    @filter.command("任务帮助", alias=["taskhelp", "help task"])
+    @filter.command("任务帮助", alias={'taskhelp', 'help task'})
     async def task_help(self, event: AstrMessageEvent):
         '''显示任务板帮助'''
         msg = (
@@ -80,15 +84,14 @@ class QuickTaskPlugin(Star):
         yield event.plain_result(msg)
 
     # 2. 发布指令
-    @filter.command("发布任务", alias=["发布", "pub", "task"])
+    @filter.command("发布任务", alias={'发布', 'pub', 'task'})
     async def publish_task(self, event: AstrMessageEvent):
         '''发布新任务 (自动覆盖)'''
         user_name = event.get_sender_name()
         user_id = event.get_sender_id()
 
-        # 定义当前指令的所有前缀，用于解析
-        aliases = ["发布任务", "发布", "pub", "task"]
-        content = self._strip_prefix(event.message_str, aliases)
+        # 解析内容
+        content = self._strip_prefix(event.message_str, "发布任务", {'发布', 'pub', 'task'})
 
         if not content:
             yield event.plain_result("❌ 内容不能为空，例如：pub 求带副本")
@@ -122,7 +125,7 @@ class QuickTaskPlugin(Star):
         yield event.plain_result(msg)
 
     # 3. 删除指令
-    @filter.command("删除任务", alias=["撤销任务", "del", "rm", "删除"])
+    @filter.command("删除任务", alias={'撤销任务', 'del', 'rm', '删除'})
     async def delete_task(self, event: AstrMessageEvent):
         '''删除自己的任务'''
         user_id = event.get_sender_id()
@@ -142,7 +145,7 @@ class QuickTaskPlugin(Star):
             yield event.plain_result("❌ 你当前没有发布的任务")
 
     # 4. 列表指令
-    @filter.command("任务列表", alias=["列表", "ls", "tasks", "活"])
+    @filter.command("任务列表", alias={'列表', 'ls', 'tasks', '活'})
     async def list_tasks(self, event: AstrMessageEvent):
         '''查看所有任务'''
         self.clean_expired()
@@ -155,16 +158,16 @@ class QuickTaskPlugin(Star):
         yield event.plain_result(header + body)
 
     # 5. 搜索指令
-    @filter.command("搜索任务", alias=["搜索", "find", "query"])
+    @filter.command("搜索任务", alias={'搜索', 'find', 'query'})
     async def search_task(self, event: AstrMessageEvent):
         '''搜索任务'''
-        aliases = ["搜索任务", "搜索", "find", "query"]
-        keyword = self._strip_prefix(event.message_str, aliases)
+        # 解析内容
+        keyword = self._strip_prefix(event.message_str, "搜索任务", {'搜索', 'find', 'query'})
 
         self.clean_expired()
 
         if not keyword:
-            # 这里的逻辑是：如果没有关键词，就显示全部列表
+            # 无关键词 -> 显示列表
             if not self.tasks:
                 yield event.plain_result("📭 任务板是空的")
             else:
