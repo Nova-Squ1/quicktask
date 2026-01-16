@@ -1,12 +1,5 @@
-<<<<<<< HEAD
 name: astrbot_plugin_quicktask
 version: 1.0.0
 description: 简易任务板插件。支持发布(限1条/人)、搜索、查看列表，任务发布30分钟后自动过期删除。
 author: Squ1
-=======
-name: astrbot_plugin_quicktask
-version: 1.0.0
-description: 简易任务板插件。支持发布(限1条/人)、搜索、查看列表，任务发布30分钟后自动过期删除。
-author: Squ1
->>>>>>> cb8f563bebeb3cd362b77fb591cb6180d9ea4682
 url: https://github.com/Nova-Squ1/quicktask
